@@ -16,6 +16,8 @@ void PortF_Init(void);
 //void GPIOPortA_Handler(void);
 void EdgeCounter_Init(void);
 void SysTick_Init(uint32_t period);
+void PWM_Init(uint16_t period, uint16_t high);
+void PWM_Duty(uint16_t high);
 
 uint16_t RisingEdgeCnt = 0;
 // const will place these structures in ROM

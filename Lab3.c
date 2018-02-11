@@ -38,7 +38,8 @@ int main(void){
   ST7735_FillScreen(ST7735_BLACK);
   ST7735_OutString(1,1,(unsigned char *)titlePlot2,ST7735_WHITE,17);
   ST7735_OutString(1,2,(unsigned char *)titlePlot3,ST7735_WHITE,15);
-  SysTick_Init(50000000);
+  SysTick_Init(16000000);
+  //PWM_Init(16000, 8000);
   while(1)
   {
 	  //Just process the button presses.
@@ -103,9 +104,34 @@ void Pause(void){
 void SysTick_Init(uint32_t period)
 {
 	Counts = 0;
+
 	NVIC_ST_CTRL_R = 0;               //disable SysTick during setup
 	NVIC_ST_RELOAD_R = period-1;      //reload value
 	NVIC_ST_CURRENT_R = 0;            //any write to current clears it
 	NVIC_SYS_PRI3_R = (NVIC_SYS_PRI3_R&0x00FFFFFF) | 0x40000000; //priority 2
 	NVIC_ST_CTRL_R = 0x00000007;      //enable with core clock and interrupts
+}
+
+
+//period is the number of bus clock cycles in the PWM period
+//high is number of bus clock cycles the signal is high
+void PWM_Init(uint16_t period, uint16_t high)
+{
+	SYSCTL_RCGCTIMER_R |= 0x04; //activate timer 0
+	SYSCTL_RCGCGPIO_R |= 0x02;  //activate port B
+	while((SYSCTL_PRGPIO_R&0x02)==0){}; // allow time for clock to start
+	GPIO_PORTB_AFSEL_R |= 0x01; // enable alt funct on PB0
+	GPIO_PORTB_DEN_R |= 0x01; // enable alt funct on PB0
+	GPIO_PORTB_PCTL_R = (GPIO_PORTB_PCTL_R&0xFFFFFFF0)+0x00000007;
+	TIMER2_CTL_R &= ~0x00000001; //disable timer2A during setup
+	TIMER2_CFG_R = 0x00000004; //configure for 16-bit timer mode
+	TIMER2_TAMR_R = 0x0000000A; //PWM and periodic mode
+	TIMER2_TAILR_R  = period-1; //timer start value
+	TIMER2_TAMATCHR_R = period-high-1; //duty cycle = high/period
+	TIMER2_CTL_R |= 0x00000001; //enable timer2A 16-b, PWM
+}
+
+void PWM_Duty(uint16_t high)
+{
+	TIMER0_TAMATCHR_R = TIMER0_TAILR_R-high; //duty cycle = high/period
 }

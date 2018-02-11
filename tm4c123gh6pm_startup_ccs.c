@@ -326,11 +326,12 @@ void SysTick_Handler(uint32_t period)
 	uint32_t secondDigit = 0;
 	uint32_t secondRollover = 0;
 	uint32_t minuteRollover = 0;
+
 	Counts++;
-	//Four SysTick interrupts corresponds to one second.
-	//This is based on a period of 50000000 for SysTick_Init
-	//and the current clock frequency.
-	if(Counts > 3)
+	//Five SysTick interrupts corresponds to one second.
+	//This is based on a period of 16000000 for SysTick_Init (200ms)
+	//and the current clock frequency (40MHz).
+	if(Counts > 4)
 	{
 		Counts = 0;
 		secondCnt++;
@@ -403,4 +404,6 @@ void SysTick_Handler(uint32_t period)
 		}
 		ST7735_OutString(1,3,(unsigned char *)timeTableDisp,ST7735_WHITE,8);
 	}
+
+
 }
